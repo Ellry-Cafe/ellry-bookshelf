@@ -33,6 +33,9 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
         return;
       }
 
+      const now = new Date();
+      const dueDate = new Date(now.getTime() + (3 * 60 * 60 * 1000)); // 3 hours from now
+
       // Create borrowed_books record
       const { error: borrowError } = await supabase
         .from('borrowed_books')
@@ -40,8 +43,8 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
           {
             book_id: book.id,
             borrower_id: borrower.id,
-            date_borrowed: new Date().toISOString(),
-            due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+            date_borrowed: now.toISOString(),
+            due_date: dueDate.toISOString()
           }
         ]);
 
