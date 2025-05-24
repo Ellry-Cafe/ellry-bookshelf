@@ -13,73 +13,89 @@ export default function BookListWithFilter({ layout = 'grid' }) {
     const [selectedGenre, setSelectedGenre] = useState('');
     const [selectedAuthor, setSelectedAuthor] = useState('');
     const [soldBook, setSoldBook] = useState('');
+    const [borrowStatus, setBorrowStatus] = useState({});
     
 
     const navigate = useNavigate()
   
     useEffect(() => {
-        async function fetchBooks() {
-          const { data, error } = await supabase
-            .from('books')
-            .select('*')
-            .order('title', { ascending: true });
-      
-          if (error) {
-            console.error('Error fetching books:', error);
-            return;
-          }
-      
-          // Map each book to attach its public image URL
-          const booksWithImageUrls = data.map(book => {
-            let publicUrl = '';
-          
-            if (book.image_url?.startsWith('http')) {
-              // Already a full URL, use as is
-              publicUrl = book.image_url;
-            } else if (book.image_url) {
-              // Needs conversion
-              const { data: imageData } = supabase
-                .storage
-                .from('book-covers')
-                .getPublicUrl(book.image_url);
-          
-              publicUrl = imageData?.publicUrl || '';
-            }
-          
-            return {
-              ...book,
-              public_image_url: publicUrl,
-            };
-          });
-          
-      
-          setBooks(booksWithImageUrls);
-        }
-      
         fetchBooks();
-      }, []);
+    }, []);
+
+    const fetchBooks = async () => {
+        try {
+            // Fetch books
+            const { data: booksData, error: booksError } = await supabase
+                .from('books')
+                .select('*')
+                .order('title', { ascending: true });
+
+            if (booksError) throw booksError;
+
+            // Fetch active borrows
+            const { data: borrowsData, error: borrowsError } = await supabase
+                .from('borrowed_books')
+                .select('book_id')
+                .is('returned_at', null);
+
+            if (borrowsError) throw borrowsError;
+
+            // Create a map of borrowed book IDs
+            const borrowedBooks = borrowsData.reduce((acc, borrow) => {
+                acc[borrow.book_id] = true;
+                return acc;
+            }, {});
+
+            // Map each book to attach its public image URL and borrow status
+            const booksWithImageUrls = booksData.map(book => {
+                let publicUrl = '';
+              
+                if (book.image_url?.startsWith('http')) {
+                  // Already a full URL, use as is
+                  publicUrl = book.image_url;
+                } else if (book.image_url) {
+                  // Needs conversion
+                  const { data: imageData } = supabase
+                    .storage
+                    .from('book-covers')
+                    .getPublicUrl(book.image_url);
+              
+                  publicUrl = imageData?.publicUrl || '';
+                }
+              
+                return {
+                  ...book,
+                  public_image_url: publicUrl,
+                  is_borrowed: borrowedBooks[book.id] || false
+                };
+            });
+            
+      
+            setBooks(booksWithImageUrls);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            toast.error('Failed to load books');
+        }
+    };
 
 
     const handleEdit = (id) => {
-        navigate(`/edit/${id}`) // Ensure this is passing the correct book ID
-    }
+        navigate(`/edit/${id}`);
+    };
 
     const handleDelete = async (id) => {
-        const confirmed = toast.confirm('Are you sure you want to delete this book?')
-        if (!confirmed) return
-    
-        const { error } = await supabase.from('books').delete().eq('id', id)
+        const confirmed = window.confirm('Are you sure you want to delete this book?');
+        if (!confirmed) return;
+
+        const { error } = await supabase.from('books').delete().eq('id', id);
         if (!error) {
-          setBooks(prev => prev.filter(book => book.id !== id))
-        }
-    
-        if (error) {
-            console.error('Delete failed:', error);
-          } else {
+            setBooks(prev => prev.filter(book => book.id !== id));
             toast.success('Book deleted successfully!');
-            // optionally refresh the list
-          }
-    }
+        } else {
+            console.error('Delete failed:', error);
+            toast.error('Failed to delete book');
+        }
+    };
   
     const genres = [...new Set(books.map(book => book.genre))].sort();
     const authors = [...new Set(books.map(book => book.author))].sort();
@@ -207,12 +223,13 @@ export default function BookListWithFilter({ layout = 'grid' }) {
                                 <td className="p-2">
                                   { book.sold ? 
                                     <span className='font-semibold text-red-700'>Sold</span> 
-                                    : 
-                                    <span className=' text-green-700'>Available</span>
+                                    : book.is_borrowed ? 
+                                    <span className='font-semibold text-orange-600'>Borrowed</span>
+                                    : <span className=' text-green-700'>Available</span>
                                   }</td>
                                 <td className="p-2 space-x-2 flex items-center">
                                     <button
-                                        onClick={() => handleEdit(book.id)} // Use handleEdit
+                                        onClick={() => handleEdit(book.id)}
                                         className="text-blue-600 hover:underline text-xs flex items-center space-x-1"
                                     >
                                         <FaEdit /> 
