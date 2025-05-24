@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import toast from 'react-hot-toast';
+import { RotateCcw, Trash2 } from 'lucide-react';
 
 export default function BorrowerRegister() {
   const [formData, setFormData] = useState({
@@ -233,20 +234,24 @@ export default function BorrowerRegister() {
                         )}
                       </td>
                       <td className="px-4 py-2 text-xs">
-                        {!record.returned_at && (
+                        <div className="flex gap-2">
+                          {!record.returned_at && (
+                            <button
+                              onClick={() => handleReturn(record.id)}
+                              className="text-green-500 hover:text-green-600 transition-colors"
+                              title="Return Book"
+                            >
+                              Return
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleReturn(record.id)}
-                            className="bg-green-500 text-white px-2 py-1 rounded mr-2 hover:bg-green-600"
+                            onClick={() => handleDelete(record.id)}
+                            className="text-red-500 hover:text-red-600 transition-colors"
+                            title="Delete Record"
                           >
-                            Return
+                            <Trash2 size={16} />
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(record.id)}
-                          className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                        >
-                          Delete
-                        </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

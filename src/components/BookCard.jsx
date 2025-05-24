@@ -1,5 +1,5 @@
 import { useCart } from '../context/CartContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import BorrowerModal from './BorrowerModal';
 import { supabase } from '../services/supabaseClient';
@@ -8,6 +8,31 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
   const { addToCart } = useCart();
   const [modalOpen, setModalOpen] = useState(false);
   const [book, setBook] = useState(initialBook);
+  const [isBorrowed, setIsBorrowed] = useState(false);
+
+  useEffect(() => {
+    checkBorrowStatus();
+  }, [book.id]);
+
+  const checkBorrowStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('borrowed_books')
+        .select('*')
+        .eq('book_id', book.id)
+        .is('returned_at', null)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking borrow status:', error);
+        return;
+      }
+
+      setIsBorrowed(!!data);
+    } catch (error) {
+      console.error('Error checking borrow status:', error);
+    }
+  };
 
   const handleBuy = () => {
     addToCart({ ...book, type: 'buy' });
@@ -64,7 +89,7 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
         return;
       }
 
-      setBook(prev => ({ ...prev, borrowed: true }));
+      setIsBorrowed(true);
       setModalOpen(false);
       toast.success(`Book borrowed successfully by ${borrower.full_name}`);
     } catch (error) {
@@ -76,7 +101,6 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
   return (
     <>
     <div key={book.id} className="bg-white rounded-lg shadow p-4 flex gap-4">
-      
       <div>
         <img
           src={book.public_image_url}
@@ -84,16 +108,15 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
           className="w-20 h-28 object-cover rounded"
         />
 
-      
         {/* Buy Button */}
         <button
           onClick={handleBuy}
           className={`px-2 py-1 rounded text-[10px] mt-3 ${
-            book.sold || book.borrowed
+            book.sold || isBorrowed
               ? 'bg-gray-400 text-white cursor-not-allowed'
               : 'bg-orange-600 text-white hover:bg-black transition'
           }`}
-          disabled={book.sold || book.borrowed}
+          disabled={book.sold || isBorrowed}
         >
           {book.sold ? 'Sold Out' : 'Buy'}
         </button>
@@ -103,13 +126,13 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
           <button
             onClick={handleBorrowClick}
             className={`px-2 py-1 rounded text-[10px] ml-1 ${
-              book.borrowed
+              isBorrowed
                 ? 'bg-gray-400 text-white cursor-not-allowed'
                 : 'bg-tealbrand text-white hover:bg-orange-600 transition'
             }`}
-            disabled={book.borrowed}
+            disabled={isBorrowed}
           >
-            {book.borrowed ? 'Borrowed' : 'Borrow'}
+            {isBorrowed ? 'Borrowed' : 'Borrow'}
           </button>
         )}
       </div>
@@ -139,8 +162,6 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
             </span>
           ))}
         </div>
-
-        
       </div>
 
       <div>
@@ -151,8 +172,6 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
         />
       </div>
     </div>
-
-    
     </>
-  )
+  );
 }
