@@ -10,6 +10,7 @@ import Checkout from './pages/Checkout'
 import Success from './pages/Success'
 import BorrowerRegister from './pages/BorrowerRegister';
 import CouponManagement from './pages/CouponManagement';
+import TransactionHistory from './pages/TransactionHistory';
 
 // Components
 import EditBook from './components/EditBook'
@@ -88,6 +89,12 @@ function App() {
         <Route path="/coupons" element={
           <Home>
             <CouponManagement />
+          </Home>
+        } />
+
+        <Route path="/transactions" element={
+          <Home>
+            <TransactionHistory />
           </Home>
         } />
 
