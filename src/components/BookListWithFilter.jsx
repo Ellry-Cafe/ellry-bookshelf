@@ -114,9 +114,17 @@ export default function BookListWithFilter({ layout = 'grid' }) {
     const exportToCSV = (bookList) => {
   if (!bookList || bookList.length === 0) return;
 
-  const headers = ['Title', 'Author', 'Genre', 'Price', 'Published'];
+  const headers = ['SKU', 'Title', 'Author', 'Genre', 'Price', 'Published', 'Status'];
   const rows = bookList.map(book =>
-    [book.title, book.author, book.genre, book.price, book.published_date].join(',')
+    [
+      book.sku,
+      book.title,
+      book.author,
+      book.genre,
+      book.price,
+      book.published_date,
+      book.sold ? 'Sold' : book.is_borrowed ? 'Borrowed' : 'Available'
+    ].join(',')
   );
 
   const csv = [headers.join(','), ...rows].join('\n');
@@ -125,7 +133,7 @@ export default function BookListWithFilter({ layout = 'grid' }) {
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'books.csv';
+  a.download = 'books_inventory.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -178,10 +186,9 @@ export default function BookListWithFilter({ layout = 'grid' }) {
           </select>
           
           <button onClick={() => exportToCSV(filteredBooks)}
-            className=" text-white px-2 py-2 rounded flex text-xs bg-tealbrand">
+            className="text-white px-2 py-2 rounded flex text-xs bg-tealbrand">
               Export
-            </button>
-          
+          </button>
         </div>
   
         {layout === 'grid' ? (
@@ -191,72 +198,71 @@ export default function BookListWithFilter({ layout = 'grid' }) {
             ))}
           </div>
         ) : (
-        
         <div className="overflow-auto overflow-x-auto bg-white rounded shadow">
-            
-                    <table className="min-w-full table-auto text-xs">
-                        <thead className="bg-gray-200 text-left">
-                            <tr>
-                            <th className="p-2">Title</th>
-                            <th className="p-2">Author</th>
-                            <th className="p-2">Genre</th>
-                            <th className="p-2">Price</th>
-                            <th className="p-2">Qty</th>
-                            <th className="p-2">Published</th>
-                            <th className="p-2">Status</th>
-                            <th className="p-2">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredBooks.map(book => (
-                            <tr key={book.id} className="border-t hover:bg-gray-100 transition-colors duration-200">
-                                <td className="p-2">{book.title}</td>
-                                <td className="p-2">{book.author}</td>
-                                <td className="p-2">{book.genre}</td>
-                                <td className="p-2">₱{book.price}</td>
-                                <td className="p-2">{book.quantity}</td>
-                                <td className="p-2">
-                                    {book.published_date
-                                        ? new Date(book.published_date).toLocaleDateString()
-                                        : '—'}
-                                </td>
-                                <td className="p-2">
-                                  { book.sold ? 
-                                    <span className='font-semibold text-red-700'>Sold</span> 
-                                    : book.is_borrowed ? 
-                                    <span className='font-semibold text-orange-600'>Borrowed</span>
-                                    : <span className=' text-green-700'>Available</span>
-                                  }</td>
-                                <td className="p-2 space-x-2 flex items-center">
-                                    <button
-                                        onClick={() => handleEdit(book.id)}
-                                        className="text-blue-600 hover:underline text-xs flex items-center space-x-1"
-                                    >
-                                        <FaEdit /> 
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(book.id)}
-                                        className="text-red-500 hover:underline text-xs"
-                                    >
-                                        <FaTrash /> 
-                                    </button>
-                                </td>
-                            </tr>
-                            ))}
-                            {books.length === 0 && (
-                            <tr>
-                                <td colSpan="7" className="p-4 text-center text-gray-500">
-                                No books found.
-                                </td>
-                            </tr>
-                            )}
-                        </tbody>
-                    </table>
-          
-          
+            <table className="min-w-full table-auto text-xs">
+                <thead className="bg-gray-200 text-left">
+                    <tr>
+                        <th className="p-2">SKU</th>
+                        <th className="p-2">Title</th>
+                        <th className="p-2">Author</th>
+                        <th className="p-2">Genre</th>
+                        <th className="p-2">Price</th>
+                        <th className="p-2">Qty</th>
+                        <th className="p-2">Published</th>
+                        <th className="p-2">Status</th>
+                        <th className="p-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {filteredBooks.map(book => (
+                    <tr key={book.id} className="border-t hover:bg-gray-100 transition-colors duration-200">
+                        <td className="p-2 font-mono">{book.sku}</td>
+                        <td className="p-2">{book.title}</td>
+                        <td className="p-2">{book.author}</td>
+                        <td className="p-2">{book.genre}</td>
+                        <td className="p-2">₱{book.price}</td>
+                        <td className="p-2">{book.quantity}</td>
+                        <td className="p-2">
+                            {book.published_date
+                                ? new Date(book.published_date).toLocaleDateString()
+                                : '—'}
+                        </td>
+                        <td className="p-2">
+                          { book.sold ? 
+                            <span className='font-semibold text-red-700'>Sold</span> 
+                            : book.is_borrowed ? 
+                            <span className='font-semibold text-orange-600'>Borrowed</span>
+                            : <span className='text-green-700'>Available</span>
+                          }
+                        </td>
+                        <td className="p-2 space-x-2 flex items-center">
+                            <button
+                                onClick={() => handleEdit(book.id)}
+                                className="text-blue-600 hover:underline text-xs flex items-center space-x-1"
+                            >
+                                <FaEdit /> 
+                            </button>
+                            <button
+                                onClick={() => handleDelete(book.id)}
+                                className="text-red-500 hover:underline text-xs"
+                            >
+                                <FaTrash /> 
+                            </button>
+                        </td>
+                    </tr>
+                    ))}
+                    {books.length === 0 && (
+                    <tr>
+                        <td colSpan="9" className="p-4 text-center text-gray-500">
+                        No books found.
+                        </td>
+                    </tr>
+                    )}
+                </tbody>
+            </table>
         </div>
         )}
       </div>
     );
-  }
+}
   
