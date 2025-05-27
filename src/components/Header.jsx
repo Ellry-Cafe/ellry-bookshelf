@@ -1,19 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'
-import { LogOut,  Menu, X  } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 import logo from '../assets/logo-white.png';
-
 
 export default function Header({ books }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('ellryUser');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('ellryUser')
     window.location.href = '/'
   }
 
-  
+  const isAdmin = user?.role === 'admin';
+
   return (
     <nav className="bg-orange-600 text-white" style={{ position: 'sticky', top: 0, zIndex: 10}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,7 +32,6 @@ export default function Header({ books }) {
           </div>
 
           {/* Desktop Menu */}
-          
           <div className="hidden md:flex items-center gap-4">
             <Link
               to="/home"
@@ -38,16 +44,20 @@ export default function Header({ books }) {
             >
               Borrowers
             </Link>
-            <Link
-              to="/inventory"
-              className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
-            > Inventory
-            </Link>
-            <Link
-              to="/coupons"
-              className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
-            > Coupons
-            </Link>
+            {isAdmin && (
+              <>
+                <Link
+                  to="/inventory"
+                  className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
+                > Inventory
+                </Link>
+                <Link
+                  to="/coupons"
+                  className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
+                > Coupons
+                </Link>
+              </>
+            )}
             <Link
               to="/transactions"
               className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
@@ -55,7 +65,7 @@ export default function Header({ books }) {
             </Link>
             <button
               onClick={handleLogout}
-              className=" text-black px-4 py-2 rounded flex text-xs"
+              className="text-black px-4 py-2 rounded flex text-xs"
             ><LogOut size={14} className='mr-1 mt-1' />
               <span className='mt-1'>Logout</span>
             </button>
@@ -84,18 +94,22 @@ export default function Header({ books }) {
             >
               Borrowers
             </Link>
-            <Link
-              to="/inventory"
-              className="text-white px-3 py-2 flex text-xs"
-            >
-              Inventory
-            </Link>
-            <Link
-              to="/coupons"
-              className="text-white px-3 py-2 flex text-xs"
-            >
-              Coupons
-            </Link>
+            {isAdmin && (
+              <>
+                <Link
+                  to="/inventory"
+                  className="text-white px-3 py-2 flex text-xs"
+                >
+                  Inventory
+                </Link>
+                <Link
+                  to="/coupons"
+                  className="text-white px-3 py-2 flex text-xs"
+                >
+                  Coupons
+                </Link>
+              </>
+            )}
             <Link
               to="/transactions"
               className="text-white px-3 py-2 flex text-xs"
@@ -104,7 +118,7 @@ export default function Header({ books }) {
             </Link>
             <button
               onClick={handleLogout}
-              className=" text-black px-2 py-2 rounded flex text-xs"
+              className="text-black px-2 py-2 rounded flex text-xs"
             ><LogOut size={14} className='mr-1 mt-1' />
               <span className='mt-1'>Logout</span>
             </button>

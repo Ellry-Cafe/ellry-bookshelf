@@ -16,6 +16,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import EditBook from './components/EditBook'
 import Books from './components/Books'
 import { CartProvider } from './context/CartContext'
+import ProtectedRoute from './components/ProtectedRoute'
 
 
 function App() {
@@ -35,67 +36,87 @@ function App() {
         <Route path="/" element={user ? <Navigate to="/home" /> : <AuthPage setUser={setUsers} />} />
 
         <Route path="/home" element={
-          <Home>
-            <Books />
-          </Home>
+          <ProtectedRoute>
+            <Home>
+              <Books />
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="/inventory" element={
-          <Home>
-            <Inventory />
-          </Home>
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Home>
+              <Inventory />
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="/add" element={
-          <Home>
-            <AddBook />
-          </Home>
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Home>
+              <AddBook />
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="/edit/:id" element={
-          <Home>
-            <EditBook />
-          </Home>          
-          } />
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Home>
+              <EditBook />
+            </Home>          
+          </ProtectedRoute>
+        } />
 
         <Route path="/checkout" element={
-          <Home>
-            <Checkout />
-          </Home>
+          <ProtectedRoute>
+            <Home>
+              <Checkout />
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="/success" element={
-          <Home>
-            <Success />
-          </Home>
+          <ProtectedRoute>
+            <Home>
+              <Success />
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="*" element={<Navigate to="/" />} />
 
         <Route path="/cart" element={
-          <Home>
-            <CartProvider>
-              <Books />
-            </CartProvider>
-          </Home>
+          <ProtectedRoute>
+            <Home>
+              <CartProvider>
+                <Books />
+              </CartProvider>
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="/borrowers" element={
-          <Home>
-            <BorrowerRegister />
-          </Home>
+          <ProtectedRoute>
+            <Home>
+              <BorrowerRegister />
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="/coupons" element={
-          <Home>
-            <CouponManagement />
-          </Home>
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Home>
+              <CouponManagement />
+            </Home>
+          </ProtectedRoute>
         } />
 
         <Route path="/transactions" element={
-          <Home>
-            <TransactionHistory />
-          </Home>
+          <ProtectedRoute>
+            <Home>
+              <TransactionHistory />
+            </Home>
+          </ProtectedRoute>
         } />
 
       </Routes>
