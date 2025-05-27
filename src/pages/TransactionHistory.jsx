@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { toast } from 'react-hot-toast';
+import { Download } from 'lucide-react';
 
 export default function TransactionHistory() {
   const [transactions, setTransactions] = useState([]);
@@ -67,10 +68,64 @@ export default function TransactionHistory() {
     setEndDate('');
   };
 
+  const exportToCSV = () => {
+    // Define CSV headers
+    const headers = [
+      'Date',
+      'Book Title',
+      'Author',
+      'Type',
+      'Quantity',
+      'Payment Method',
+      'Total Amount',
+      'Discount',
+      'Final Total'
+    ];
+
+    // Convert transactions to CSV rows
+    const rows = filteredTransactions.map(transaction => [
+      formatDate(transaction.created_at),
+      transaction.books?.title || '',
+      transaction.books?.author || '',
+      transaction.type === 'buy' ? 'Purchase' : 'Rental',
+      transaction.quantity,
+      transaction.payment_method,
+      transaction.total,
+      transaction.discount_amount || '0',
+      (transaction.total - (transaction.discount_amount || 0)).toFixed(2)
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <main className="flex-1 p-4 bg-creamwhite">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-coffeebrown mb-4">Transaction History</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-coffeebrown">Transaction History</h2>
+          <button
+            onClick={exportToCSV}
+            className="flex items-center gap-2 bg-tealbrand text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors text-sm"
+          >
+            <Download size={16} />
+            <span>Export CSV</span>
+          </button>
+        </div>
 
         {/* Date Filter */}
         <div className="bg-white p-4 rounded-lg shadow mb-4">
