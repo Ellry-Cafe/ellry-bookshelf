@@ -43,6 +43,11 @@ export default function Header({ books }) {
               className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
             > Inventory
             </Link>
+            <Link
+              to="/coupons"
+              className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
+            > Coupons
+            </Link>
             <button
               onClick={handleLogout}
               className=" text-black px-4 py-2 rounded flex text-xs"
@@ -79,6 +84,12 @@ export default function Header({ books }) {
               className="text-white px-3 py-2 flex text-xs"
             >
               Inventory
+            </Link>
+            <Link
+              to="/coupons"
+              className="text-white px-3 py-2 flex text-xs"
+            >
+              Coupons
             </Link>
             <button
               onClick={handleLogout}

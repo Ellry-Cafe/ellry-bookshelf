@@ -9,6 +9,7 @@ import AddBook from './pages/AddBook'
 import Checkout from './pages/Checkout'
 import Success from './pages/Success'
 import BorrowerRegister from './pages/BorrowerRegister';
+import CouponManagement from './pages/CouponManagement';
 
 // Components
 import EditBook from './components/EditBook'
@@ -81,6 +82,12 @@ function App() {
         <Route path="/borrowers" element={
           <Home>
             <BorrowerRegister />
+          </Home>
+        } />
+
+        <Route path="/coupons" element={
+          <Home>
+            <CouponManagement />
           </Home>
         } />
 
