@@ -28,26 +28,21 @@ export default function Header({ books }) {
           
           <div className="hidden md:flex items-center gap-4">
             <Link
-            to="/borrowers"
-            className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
-          >
-            Borrowers
-          </Link>
-            <Link
               to="/home"
               className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
             > Books
+            </Link>
+            <Link
+              to="/borrowers"
+              className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
+            >
+              Borrowers
             </Link>
             <Link
               to="/inventory"
               className="text-white hover:text-coffeebrown px-3 py-2 flex text-xs"
             > Inventory
             </Link>
-            
-            
-
-
-            
             <button
               onClick={handleLogout}
               className=" text-black px-4 py-2 rounded flex text-xs"
@@ -66,15 +61,7 @@ export default function Header({ books }) {
 
         {/* Mobile Dropdown Menu */}
         {menuOpen && (
-          
           <div className="md:hidden flex flex-col gap-1 py-2">
-            <Link
-              to="/borrowers"
-              className="text-white px-3 py-2 flex text-xs"
-            >
-              Borrowers
-            </Link>
-
             <Link
               to="/home"
               className="text-white px-3 py-2 flex text-xs"
@@ -82,13 +69,17 @@ export default function Header({ books }) {
               Books
             </Link>
             <Link
+              to="/borrowers"
+              className="text-white px-3 py-2 flex text-xs"
+            >
+              Borrowers
+            </Link>
+            <Link
               to="/inventory"
               className="text-white px-3 py-2 flex text-xs"
             >
               Inventory
             </Link>
-            
-            
             <button
               onClick={handleLogout}
               className=" text-black px-2 py-2 rounded flex text-xs"

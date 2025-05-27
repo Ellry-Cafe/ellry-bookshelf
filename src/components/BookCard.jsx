@@ -1,5 +1,5 @@
 import { useCart } from '../context/CartContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import BorrowerModal from './BorrowerModal';
 import { supabase } from '../services/supabaseClient';
@@ -7,19 +7,14 @@ import { supabase } from '../services/supabaseClient';
 export default function BookCard({ book: initialBook, confirmBorrow }) {
   const { addToCart } = useCart();
   const [modalOpen, setModalOpen] = useState(false);
-  const [book, setBook] = useState(initialBook);
   const [isBorrowed, setIsBorrowed] = useState(false);
 
-  useEffect(() => {
-    checkBorrowStatus();
-  }, [book.id]);
-
-  const checkBorrowStatus = async () => {
+  const checkBorrowStatus = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('borrowed_books')
         .select('*')
-        .eq('book_id', book.id)
+        .eq('book_id', initialBook.id)
         .is('returned_at', null)
         .single();
 
@@ -32,10 +27,14 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
     } catch (error) {
       console.error('Error checking borrow status:', error);
     }
-  };
+  }, [initialBook.id]);
+
+  useEffect(() => {
+    checkBorrowStatus();
+  }, [checkBorrowStatus]);
 
   const handleBuy = () => {
-    addToCart({ ...book, type: 'buy' });
+    addToCart({ ...initialBook, type: 'buy' });
     toast.success('Added to cart as purchase.');
   };
 
@@ -66,7 +65,7 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
         .from('borrowed_books')
         .insert([
           {
-            book_id: book.id,
+            book_id: initialBook.id,
             borrower_id: borrower.id,
             date_borrowed: now.toISOString(),
             due_date: dueDate.toISOString()
@@ -82,7 +81,7 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
       const { error: updateError } = await supabase
         .from('books')
         .update({ available: false })
-        .eq('id', book.id);
+        .eq('id', initialBook.id);
 
       if (updateError) {
         toast.error('Failed to update book availability.');
@@ -100,11 +99,11 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
 
   return (
     <>
-    <div key={book.id} className="bg-white rounded-lg shadow p-4 flex gap-4">
+    <div key={initialBook.id} className="bg-white rounded-lg shadow p-4 flex gap-4">
       <div>
         <img
-          src={book.public_image_url}
-          alt={book.title}
+          src={initialBook.public_image_url}
+          alt={initialBook.title}
           className="w-20 h-28 object-cover rounded"
         />
 
@@ -112,17 +111,17 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
         <button
           onClick={handleBuy}
           className={`px-2 py-1 rounded text-[10px] mt-3 ${
-            book.sold || isBorrowed
+            initialBook.sold || isBorrowed
               ? 'bg-gray-400 text-white cursor-not-allowed'
               : 'bg-orange-600 text-white hover:bg-black transition'
           }`}
-          disabled={book.sold || isBorrowed}
+          disabled={initialBook.sold || isBorrowed}
         >
-          {book.sold ? 'Sold Out' : 'Buy'}
+          {initialBook.sold ? 'Sold Out' : 'Buy'}
         </button>
 
         {/* Borrow Button */}
-        {!book.sold && (
+        {!initialBook.sold && (
           <button
             onClick={handleBorrowClick}
             className={`px-2 py-1 rounded text-[10px] ml-1 ${
@@ -138,12 +137,12 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
       </div>
 
       <div className="flex-1">
-        <p className="font-semibold text-lg leading-5">{book.title}</p>
-        <p className="text-sm text-gray-600 leading-5">{book.author}</p>
-        <p className="text-tealbrand font-semibold mt-1 text-sm">₱{book.price}</p>
+        <p className="font-semibold text-lg leading-5">{initialBook.title}</p>
+        <p className="text-sm text-gray-600 leading-5">{initialBook.author}</p>
+        <p className="text-tealbrand font-semibold mt-1 text-sm">₱{initialBook.price}</p>
         <p className="text-[11px] text-gray-600 my-2">
-          {book.published_date
-            ? `Published: ${new Date(book.published_date).toLocaleDateString('en-US', {
+          {initialBook.published_date
+            ? `Published: ${new Date(initialBook.published_date).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric'
@@ -153,7 +152,7 @@ export default function BookCard({ book: initialBook, confirmBorrow }) {
 
         {/* Genre Tags */}
         <div className="flex flex-wrap gap-1 mt-1">
-          {book.genre?.split(',').map((tag, i) => (
+          {initialBook.genre?.split(',').map((tag, i) => (
             <span
               key={i}
               className="text-[11px] bg-gray-200 text-gray-600 rounded-full px-1 py-0"
