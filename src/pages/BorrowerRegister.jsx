@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import toast from 'react-hot-toast';
-import { RotateCcw, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Trash2, Edit2, Save, X } from 'lucide-react';
 
 export default function BorrowerRegister() {
   const [formData, setFormData] = useState({

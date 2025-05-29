@@ -7,6 +7,7 @@ import {ShoppingCart} from 'lucide-react'
 import { useCart } from '../context/CartContext';
 
 export default function Home({ children }) {
+  // eslint-disable-next-line no-unused-vars
   const [books, setBooks] = useState([]);
   const { setIsCartOpen } = useCart();
 

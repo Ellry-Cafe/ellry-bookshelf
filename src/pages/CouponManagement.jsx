@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 
 export default function CouponManagement() {
   const [coupons, setCoupons] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(true);
   const [newCoupon, setNewCoupon] = useState({
     code: '',
@@ -14,6 +15,7 @@ export default function CouponManagement() {
 
   useEffect(() => {
     checkAndCreateTable();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAndCreateTable = async () => {

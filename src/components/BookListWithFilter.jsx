@@ -13,6 +13,7 @@ export default function BookListWithFilter({ layout = 'grid' }) {
     const [selectedGenre, setSelectedGenre] = useState('');
     const [selectedAuthor, setSelectedAuthor] = useState('');
     const [soldBook, setSoldBook] = useState('');
+    // eslint-disable-next-line no-unused-vars
     const [borrowStatus, setBorrowStatus] = useState({});
     
 
