@@ -1,68 +1,49 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../services/supabaseClient'
+import toast from 'react-hot-toast'
 
-export default function AuthPage( setUsers ) {
+export default function AuthPage({ setUser }) {
   const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [user, setUser] = useState(null)
-
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('ellryUser')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('pincode', pin)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('pincode', pin)
+        .single()
 
-    setLoading(false)
+      if (error || !data) {
+        setError('Invalid pincode. Please try again.')
+        return
+      }
 
-    if (error || !data) {
-      setError('Invalid pincode. Please try again.')
-    } else {
       localStorage.setItem('ellryUser', JSON.stringify(data))
       setUser(data)
-      localStorage.setItem('ellryUser', JSON.stringify(data))
+      toast.success(`Welcome back, ${data.name}!`)
+      
+      // Redirect to home after successful login
       setTimeout(() => {
-        window.location.href = '/'
+        window.location.href = '/home'
       }, 1000)
+    } catch (error) {
+      console.error('Error:', error)
+      setError('An error occurred. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    
-    
   }
-
-  if (user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-creamwhite text-center space-y-3">
-        <img src="/logo.png" alt="Ellry Bookshelf" className="w-24 mb-2" />
-        <h2 className="text-coffeebrown text-xl font-bold">Welcome, {user.name}!</h2>
-        <p className="text-sm text-gray-600">You're now logged in via pincode</p>
-      </div>
-    )
-  }
-  
-  
-  
-  
-  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-creamwhite px-4">
       {/* Logo */}
       <img src="/logo.png" alt="Ellry Bookshelf" className="w-32 h-auto mb-4" />
-      
 
       {/* Pincode Login */}
       <form

@@ -8,9 +8,9 @@ import Inventory from './pages/Inventory'
 import AddBook from './pages/AddBook'
 import Checkout from './pages/Checkout'
 import Success from './pages/Success'
-import BorrowerRegister from './pages/BorrowerRegister';
-import CouponManagement from './pages/CouponManagement';
-import TransactionHistory from './pages/TransactionHistory';
+import BorrowerRegister from './pages/BorrowerRegister'
+import CouponManagement from './pages/CouponManagement'
+import TransactionHistory from './pages/TransactionHistory'
 
 // Components
 import EditBook from './components/EditBook'
@@ -18,14 +18,13 @@ import Books from './components/Books'
 import { CartProvider } from './context/CartContext'
 import ProtectedRoute from './components/ProtectedRoute'
 
-
 function App() {
-  const [user, setUsers] = useState(null)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     const stored = localStorage.getItem('ellryUser')
     if (stored) {
-      setUsers(JSON.parse(stored))
+      setUser(JSON.parse(stored))
     }
   }, [])
 
@@ -33,7 +32,7 @@ function App() {
     <>
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/home" /> : <AuthPage setUser={setUsers} />} />
+        <Route path="/" element={user ? <Navigate to="/home" /> : <AuthPage setUser={setUser} />} />
 
         <Route path="/home" element={
           <ProtectedRoute>
@@ -44,7 +43,7 @@ function App() {
         } />
 
         <Route path="/inventory" element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['admin', 'staff']}>
             <Home>
               <Inventory />
             </Home>
@@ -96,7 +95,7 @@ function App() {
         } />
 
         <Route path="/borrowers" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin', 'staff']}>
             <Home>
               <BorrowerRegister />
             </Home>
@@ -112,7 +111,7 @@ function App() {
         } />
 
         <Route path="/transactions" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin', 'staff']}>
             <Home>
               <TransactionHistory />
             </Home>

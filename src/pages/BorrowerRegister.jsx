@@ -38,19 +38,60 @@ export default function BorrowerRegister() {
 
   const fetchBorrowedBooks = async () => {
     try {
+      setLoading(true);
+      console.log('Fetching borrowed books...');
+
       const { data, error } = await supabase
         .from('borrowed_books')
         .select(`
-          *,
-          books:book_id(title),
-          borrowers:borrower_id(full_name)
+          id,
+          book_id,
+          borrower_id,
+          date_borrowed,
+          due_date,
+          returned_at,
+          books:book_id (
+            id,
+            title
+          ),
+          borrowers:borrower_id (
+            id,
+            full_name
+          )
         `)
         .order('date_borrowed', { ascending: false });
 
-      if (error) throw error;
-      setBorrowedBooks(data);
+      console.log('Borrowed books query result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching borrowed books:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('No borrowed books found');
+        setBorrowedBooks([]);
+        return;
+      }
+
+      // Filter out records with missing book or borrower data
+      const validRecords = data.filter(record => record.books && record.borrowers);
+
+      // Log each borrowed book record
+      validRecords.forEach((record, index) => {
+        console.log(`Borrowed book ${index + 1}:`, {
+          id: record.id,
+          book: record.books.title,
+          borrower: record.borrowers.full_name,
+          date_borrowed: record.date_borrowed,
+          due_date: record.due_date,
+          returned_at: record.returned_at
+        });
+      });
+
+      setBorrowedBooks(validRecords);
     } catch (error) {
-      console.error('Error fetching borrowed books:', error);
+      console.error('Error in fetchBorrowedBooks:', error);
       toast.error('Failed to load borrowed books.');
     } finally {
       setLoading(false);
@@ -76,9 +117,12 @@ export default function BorrowerRegister() {
 
   const handleReturn = async (id) => {
     try {
+      const now = new Date();
       const { error } = await supabase
         .from('borrowed_books')
-        .update({ returned_at: new Date().toISOString() })
+        .update({ 
+          returned_at: now.toISOString().split('T')[0] + ' ' + now.toTimeString().split(' ')[0]
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -97,6 +141,36 @@ export default function BorrowerRegister() {
     } catch (error) {
       console.error('Error updating return status:', error);
       toast.error('Failed to update return status');
+    }
+  };
+
+  const handleBorrow = async (bookId, borrowerId) => {
+    try {
+      const now = new Date();
+      const dueDate = new Date(now.getTime() + (3 * 60 * 60 * 1000)); // 3 hours from now
+
+      const { error } = await supabase
+        .from('borrowed_books')
+        .insert([{
+          book_id: bookId,
+          borrower_id: borrowerId,
+          date_borrowed: now.toISOString().split('T')[0] + ' ' + now.toTimeString().split(' ')[0],
+          due_date: dueDate.toISOString().split('T')[0] + ' ' + dueDate.toTimeString().split(' ')[0]
+        }]);
+
+      if (error) throw error;
+
+      // Update book availability
+      await supabase
+        .from('books')
+        .update({ available: false })
+        .eq('id', bookId);
+
+      toast.success('Book borrowed successfully');
+      fetchBorrowedBooks();
+    } catch (error) {
+      console.error('Error borrowing book:', error);
+      toast.error('Failed to borrow book');
     }
   };
 
@@ -164,14 +238,35 @@ export default function BorrowerRegister() {
   };
 
   const formatDateTime = (timestamp) => {
-    return new Date(timestamp).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    if (!timestamp) return '—';
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        // Try parsing the timestamp directly
+        const [datePart, timePart] = timestamp.split(' ');
+        const [year, month, day] = datePart.split('-');
+        const [hour, minute, second] = timePart.split(':');
+        return new Date(year, month - 1, day, hour, minute, second).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return timestamp;
+    }
   };
 
   const handleDeleteBorrower = async (id) => {
