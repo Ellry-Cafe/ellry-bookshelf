@@ -341,6 +341,7 @@ export default function BorrowerRegister() {
               required
               className="w-full border p-2 rounded text-xs"
             />
+            <label className="block text-xs font-medium text-gray-700" style={{ marginBottom: '-10px' }}>Upload ID Card</label>
             <input
               type="file"
               name="id_card"
